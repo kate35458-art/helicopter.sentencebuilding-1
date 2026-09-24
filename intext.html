@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sky Rescue: Sentence Race</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky-top:#8FD3FF; --sky-bot:#EAF8FF; --page:#CDEBFF;
+  --ink:#1D3557; --ink-soft:#4A6283; --panel:#FFFFFF; --panel-2:#F2F9FF;
+  --line:rgba(29,53,87,.13); --cloud:#FFFFFF;
+  --good:#5CC8FF; --great:#FFCE4A; --super:#FF7AA5; --btn-ink:#1D3557;
+  --stars:none;
+  --font:"Baloo 2","Arial Rounded MT Bold","Trebuchet MS",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sky-top:#0E1A45; --sky-bot:#2B407E; --page:#0A1230;
+    --ink:#EEF3FF; --ink-soft:#AFC0E6; --panel:#18244F; --panel-2:#22305F;
+    --line:rgba(238,243,255,.15); --cloud:#E8EEFF;
+    --stars:radial-gradient(1.5px 1.5px at 12% 18%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 72% 12%,#fff 60%,transparent),radial-gradient(1px 1px at 40% 30%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 88% 40%,#fff 60%,transparent),radial-gradient(1px 1px at 25% 55%,#fff 60%,transparent),radial-gradient(1px 1px at 60% 48%,#fff 60%,transparent);
+  }
+}
+:root[data-theme="dark"]{
+  --sky-top:#0E1A45; --sky-bot:#2B407E; --page:#0A1230;
+  --ink:#EEF3FF; --ink-soft:#AFC0E6; --panel:#18244F; --panel-2:#22305F;
+  --line:rgba(238,243,255,.15); --cloud:#E8EEFF;
+  --stars:radial-gradient(1.5px 1.5px at 12% 18%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 72% 12%,#fff 60%,transparent),radial-gradient(1px 1px at 40% 30%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 88% 40%,#fff 60%,transparent);
+}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+body{background:var(--page);color:var(--ink);font-family:var(--font);display:grid;grid-template-rows:auto 1fr;overflow:hidden}
+button{font-family:inherit;cursor:pointer;color:inherit}
+button:focus-visible,input:focus-visible{outline:4px solid #FF7AA5;outline-offset:3px}
+
+.bar{display:flex;align-items:center;gap:12px;padding:10px 18px}
+.bar h1{margin:0;font-size:clamp(1.4rem,2.6vw,2rem);font-weight:800;line-height:1}
+.bar .spacer{flex:1}
+.tool{background:var(--panel);border:2px solid var(--line);border-radius:999px;padding:6px 14px;font-size:1rem;font-weight:600}
+.tool:disabled{opacity:.4;cursor:default}
+
+main{display:grid;grid-template-columns:1fr minmax(280px,360px);gap:16px;padding:0 16px 16px;min-height:0}
+
+.sky{position:relative;border-radius:32px;overflow:hidden;min-height:0;background:var(--stars),linear-gradient(180deg,var(--sky-top),var(--sky-bot))}
+.puff{position:absolute;background:var(--cloud);border-radius:999px;opacity:.55;pointer-events:none}
+.puff::before,.puff::after{content:"";position:absolute;background:inherit;border-radius:50%}
+.puff::before{width:55%;height:160%;left:15%;bottom:20%}
+.puff::after{width:40%;height:120%;right:12%;bottom:25%}
+.goal{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;z-index:2}
+.goal-cloud{position:relative;background:var(--cloud);border-radius:999px;padding:8px 34px 6px;font-size:clamp(2rem,4vw,3rem);line-height:1;box-shadow:0 6px 0 rgba(29,53,87,.08)}
+.goal-cloud::before,.goal-cloud::after{content:"";position:absolute;background:var(--cloud);border-radius:50%;z-index:-1}
+.goal-cloud::before{width:60px;height:60px;left:14px;top:-22px}
+.goal-cloud::after{width:44px;height:44px;right:18px;top:-14px}
+.kitten{display:inline-block;animation:wiggle 2.4s ease-in-out infinite}
+.bubble{background:#fff;color:#1D3557;font-weight:800;font-size:clamp(.95rem,1.6vw,1.2rem);padding:4px 12px;border-radius:14px;position:relative}
+.bubble::before{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);border:8px solid transparent;border-right-color:#fff;border-left:0}
+@keyframes wiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+
+.track{position:absolute;top:104px;bottom:58px;left:10px;right:14px;display:grid;grid-template-columns:34px 1fr;gap:6px}
+.ruler,.lanes{position:relative}
+.ruler span{position:absolute;right:2px;transform:translateY(50%);font-weight:700;font-size:.85rem;color:var(--ink-soft)}
+.lanes{display:grid}
+.lines{position:absolute;inset:0;pointer-events:none}
+.lines i{position:absolute;left:0;right:0;border-top:2px dashed var(--line)}
+.lines i.top{border-top:3px solid rgba(255,201,60,.8)}
+.lane{position:relative;border-radius:22px;transition:background .3s}
+.lane.active{background:rgba(255,255,255,.28);box-shadow:inset 0 0 0 3px rgba(255,255,255,.6)}
+
+.heli{position:absolute;left:50%;width:min(124px,86%);height:74px;bottom:calc(var(--p,0) * (100% - 74px));transform:translateX(-50%);transition:bottom .9s cubic-bezier(.34,1.35,.64,1);z-index:1}
+.heli svg{width:100%;height:100%;overflow:visible;display:block}
+.bob{position:relative;height:100%;animation:bob 2s ease-in-out infinite}
+.shake{height:100%}
+.heli.hit .shake{animation:shake .6s}
+.rotor{transform-box:fill-box;transform-origin:center;animation:spin .12s linear infinite alternate}
+.ring{position:absolute;inset:-10px -6px;border-radius:50%;opacity:0;transition:opacity .3s;background:conic-gradient(#ff6b6b,#ffd93d,#6bcb77,#4d96ff,#b76bff,#ff6b6b);-webkit-mask:radial-gradient(closest-side,transparent 82%,#000 84%);mask:radial-gradient(closest-side,transparent 82%,#000 84%)}
+.heli.shielded .ring{opacity:.9;animation:spinring 3s linear infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes spin{from{transform:scaleX(1)}to{transform:scaleX(.15)}}
+@keyframes spinring{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-14deg) translateX(-6px)}40%{transform:rotate(12deg) translateX(6px)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
+
+.names{position:absolute;bottom:12px;left:50px;right:14px;display:grid;gap:8px}
+.chip{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--panel);border-radius:999px;padding:4px 10px;font-weight:700;font-size:clamp(.85rem,1.4vw,1.05rem);border:3px solid transparent;min-width:0}
+.chip .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip b{background:var(--c);color:var(--ci);border-radius:999px;min-width:28px;text-align:center;padding:0 8px}
+.chip.active{border-color:var(--c)}
+
+/* Panel */
+.panel{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:auto;justify-content:center}
+.turn{background:var(--c,#E63946);color:var(--ci,#fff);border-radius:28px;padding:14px 18px 18px;text-align:center}
+.turn .mini{width:150px;height:92px;margin:0 auto 4px}
+.turn .mini svg{width:100%;height:100%;overflow:visible}
+.turn .who{font-size:clamp(1.4rem,2.4vw,1.9rem);font-weight:800;line-height:1.15}
+.fly{display:flex;flex-direction:column;align-items:center;gap:2px;border:0;border-radius:32px;padding:22px 16px;background:var(--great);color:var(--btn-ink);box-shadow:0 8px 0 rgba(29,53,87,.22);transition:transform .08s}
+.fly:active{transform:translateY(5px);box-shadow:0 3px 0 rgba(29,53,87,.22)}
+.fly .em{font-size:3.2rem;line-height:1}
+.fly .lbl{font-size:clamp(1.8rem,3vw,2.4rem);font-weight:800;line-height:1.1}
+.fly .sub{font-size:1.1rem;font-weight:600}
+.fly:disabled,.retry:disabled{opacity:.45;cursor:default;transform:none}
+.retry{background:transparent;border:3px dashed var(--ink-soft);border-radius:22px;padding:8px 16px;font-size:1.1rem;font-weight:700;color:var(--ink)}
+.keys{margin:0;color:var(--ink-soft);font-size:.9rem;line-height:1.5;text-align:center}
+.keys kbd{font-family:inherit;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:0 6px;font-weight:700}
+
+/* Overlays */
+.overlay{position:fixed;inset:0;display:none;place-items:center;padding:16px;background:rgba(14,26,69,.55);z-index:20;overflow:auto}
+.overlay.open{display:grid}
+.card{background:var(--panel);border-radius:32px;padding:24px 26px;width:min(560px,100%);text-align:center;box-shadow:0 12px 0 rgba(0,0,0,.12)}
+.card .big{font-size:clamp(4rem,10vw,6.5rem);line-height:1.05;animation:pop .45s cubic-bezier(.34,1.6,.64,1)}
+.card h2{margin:4px 0 2px;font-size:clamp(1.7rem,3.4vw,2.4rem);line-height:1.1;font-weight:800}
+.card .txt{margin:4px 0 16px;font-size:clamp(1.15rem,2vw,1.4rem);color:var(--ink-soft);font-weight:600}
+.btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.cbtn{border:0;border-radius:20px;padding:10px 22px;font-size:clamp(1.15rem,2vw,1.4rem);font-weight:800;background:var(--panel-2);color:var(--ink);box-shadow:0 4px 0 rgba(29,53,87,.18)}
+.cbtn.primary{background:var(--great);color:var(--btn-ink)}
+.cbtn.cloudpick{background:var(--good);color:var(--btn-ink);font-size:4rem;line-height:1;padding:14px 30px}
+@keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* Setup */
+.setup{text-align:left;max-height:100%;overflow:auto}
+.setup h2{font-size:clamp(2.2rem,5vw,3.2rem);text-align:center}
+.lead{text-align:center;margin:0 0 16px;color:var(--ink-soft);font-weight:600;font-size:1.15rem}
+.field{margin-bottom:14px}
+.flabel{display:block;font-weight:800;font-size:1.1rem;margin-bottom:6px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:80px;border:3px solid var(--line);background:var(--panel-2);border-radius:16px;padding:6px 10px;font-weight:700;font-size:1.05rem}
+.seg button[aria-pressed="true"]{border-color:#1D3557;background:var(--great);color:#1D3557}
+.namegrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.namegrid label{display:flex;align-items:center;gap:8px;background:var(--panel-2);border-radius:14px;padding:4px 10px}
+.namegrid .num{font-weight:800;color:var(--ink-soft)}
+.namegrid input{border:0;background:transparent;font:inherit;font-weight:700;font-size:1.05rem;color:var(--ink);width:100%;padding:4px 0}
+.startbtn{display:block;width:100%;border:0;border-radius:22px;padding:12px;font-size:1.5rem;font-weight:800;background:var(--super);color:#1D3557;box-shadow:0 6px 0 rgba(29,53,87,.2)}
+
+/* Paint shop */
+.paint{width:min(720px,100%)}
+.paint h2{font-size:clamp(1.8rem,4vw,2.6rem)}
+.paint .step{margin:0;color:var(--ink-soft);font-weight:700;font-size:1.05rem}
+.preview{width:min(340px,80%);aspect-ratio:124/80;margin:8px auto 10px;background:linear-gradient(180deg,var(--sky-top),var(--sky-bot));border-radius:28px;padding:10px 18px}
+.preview svg{width:100%;height:100%;overflow:visible;display:block}
+.preview [data-part]{cursor:pointer}
+.parts{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:12px}
+.parts button{border:3px solid var(--line);background:var(--panel-2);border-radius:999px;padding:6px 16px;font-weight:800;font-size:1.15rem;display:flex;align-items:center;gap:8px}
+.parts button i{width:20px;height:20px;border-radius:50%;border:2px solid rgba(29,53,87,.35)}
+.parts button[aria-pressed="true"]{border-color:#1D3557;background:var(--great);color:#1D3557}
+.swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;max-width:460px;margin:0 auto 16px}
+.swatch{aspect-ratio:1;border-radius:50%;border:4px solid rgba(29,53,87,.2);box-shadow:0 4px 0 rgba(29,53,87,.18)}
+.swatch[aria-pressed="true"]{border-color:#1D3557;transform:scale(1.12)}
+.paint .btns{justify-content:space-between}
+
+.confetti{position:fixed;top:-20px;width:12px;height:18px;border-radius:3px;z-index:30;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+@media (max-width:820px){
+  body{overflow:auto}
+  main{grid-template-columns:1fr}
+  .sky{height:62vh;min-height:420px}
+  .namegrid{grid-template-columns:1fr}
+  .swatches{grid-template-columns:repeat(4,1fr)}
+}
+@media (prefers-reduced-motion:reduce){
+  .bob,.rotor,.kitten,.heli.shielded .ring,.card .big{animation:none}
+  .heli{transition:none}
+  .confetti{display:none}
+}
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>Sky Rescue</h1>
+  <span class="spacer"></span>
+  <button class="tool" id="undoBtn" title="Undo (U)">↶ Undo</button>
+  <button class="tool" id="soundBtn" title="Sound on/off (M)">🔊 Sound</button>
+  <button class="tool" id="setupBtn">⚙️ Setup</button>
+</header>
+
+<main>
+  <section class="sky" aria-label="The sky race">
+    <div class="puff" style="width:120px;height:34px;top:32%;left:8%"></div>
+    <div class="puff" style="width:90px;height:26px;top:58%;right:10%"></div>
+    <div class="puff" style="width:140px;height:36px;top:78%;left:38%"></div>
+    <div class="goal"><div class="goal-cloud"><span class="kitten">🐱</span></div><div class="bubble">Help me!</div></div>
+    <div class="track"><div class="ruler" id="ruler"></div><div class="lanes" id="lanes"></div></div>
+    <div class="names" id="names"></div>
+  </section>
+
+  <aside class="panel">
+    <div class="turn" id="turnCard"><div class="mini" id="turnHeli"></div><div class="who" id="turnName"></div></div>
+    <button class="fly" id="flyBtn"><span class="em">🚁</span><span class="lbl">Fly up!</span><span class="sub">Good sentence</span></button>
+    <button class="retry" id="retryBtn">Not yet, next team</button>
+    <p class="keys"><kbd>Space</kbd> fly up, <kbd>0</kbd> next team, <kbd>U</kbd> undo, <kbd>M</kbd> sound</p>
+  </aside>
+</main>
+
+<!-- Setup -->
+<div class="overlay open" id="setup">
+  <div class="card setup">
+    <h2>Sky Rescue</h2>
+    <p class="lead">Make sentences, fly higher, and rescue the kitten!</p>
+    <div class="field"><span class="flabel">Teams</span>
+      <div class="seg" id="countSeg"><button data-v="2">2 teams</button><button data-v="3">3 teams</button><button data-v="4">4 teams</button></div></div>
+    <div class="field"><span class="flabel">Team names</span><div class="namegrid" id="nameInputs"></div></div>
+    <div class="field"><span class="flabel">How tall is the sky?</span>
+      <div class="seg" id="heightSeg"><button data-v="8">Short (8)</button><button data-v="12">Medium (12)</button><button data-v="16">Tall (16)</button></div></div>
+    <div class="field"><span class="flabel">Surprise clouds</span>
+      <div class="seg" id="freqSeg"><button data-v="few">A few</button><button data-v="some">Some</button><button data-v="lots">Lots</button></div></div>
+    <button class="startbtn" id="toPaint">Next: paint the helicopters 🎨</button>
+  </div>
+</div>
+
+<!-- Paint shop -->
+<div class="overlay" id="paintLayer">
+  <div class="card paint">
+    <p class="step" id="paintStep"></p>
+    <h2 id="paintTitle"></h2>
+    <div class="preview" id="paintPreview"></div>
+    <div class="parts" id="partBtns"></div>
+    <div class="swatches" id="swatches"></div>
+    <div class="btns">
+      <button class="cbtn" id="paintBack">Back</button>
+      <button class="cbtn" id="paintRandom">🎲 Surprise me</button>
+      <button class="cbtn primary" id="paintNext"></button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="eventLayer" role="dialog" aria-modal="true" aria-live="polite"><div class="card" id="eventCard"></div></div>
+
+<script>
+const PALETTE=['#E63946','#FF7AA5','#F08C2E','#FFC93C','#8BD450','#2A9D8F','#5CC8FF','#3A6FF7','#7B5CD6','#8B5A2B','#FFFFFF','#1D3557'];
+const PARTS=[['body','Body'],['window','Window'],['tail','Tail'],['rotor','Propeller'],['legs','Legs']];
+const START_BODY=['#E63946','#2A9D8F','#F08C2E','#7B5CD6'];
+const DEFAULT_NAMES=['Team 1','Team 2','Team 3','Team 4'];
+const defaultDesign=i=>({body:START_BODY[i],window:'#5CC8FF',tail:START_BODY[i],rotor:'#1D3557',legs:'#1D3557'});
+const OBST=[{e:'🐦',t:'Oh no! A bird!',d:1,w:4},{e:'⛈️',t:'Oh no! A storm cloud!',d:1,w:3},{e:'🎈',t:'Oh no! A big balloon!',d:2,w:2},{e:'⚡',t:'Oh no! Lightning!',d:3,w:1}];
+const BOOST=[{e:'💨',t:'Whoosh! A tailwind!',u:1,w:4},{e:'⛽',t:'Yay! Extra fuel!',u:2,w:2},{e:'🌈',t:'A rainbow shield!',shield:true,w:2}];
+const FREQ={few:.35,some:.5,lots:.7};
+
+const $=id=>document.getElementById(id);
+let settings=loadSettings(),S=null,history=[],busy=false,muted=false;
+
+function loadSettings(){
+  const d={count:2,names:DEFAULT_NAMES.slice(),height:12,freq:'some',designs:[0,1,2,3].map(defaultDesign)};
+  try{const s=JSON.parse(localStorage.getItem('skyRescue.v2')||'null');if(s)Object.assign(d,s);}catch(e){}
+  return d;
+}
+function saveSettings(){try{localStorage.setItem('skyRescue.v2',JSON.stringify(settings));}catch(e){}}
+
+/* readable text on any color */
+function inkFor(hex){const n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return (r*299+g*587+b*114)/1000>150?'#1D3557':'#FFFFFF';}
+function edge(hex){return hex.toUpperCase()==='#FFFFFF'?'#C9D6E8':'none';}
+
+/* ---------- sound ---------- */
+let actx=null;
+function tone(f,dur,type='sine',when=0,vol=.14){
+  if(muted)return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();
+    const t=actx.currentTime+when,o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g).connect(actx.destination);o.start(t);o.stop(t+dur+.02);}catch(e){}
+}
+const sfx={
+  up:()=>[523,659,784].forEach((f,i)=>tone(f,.2,'triangle',i*.09)),
+  down:()=>[440,370,294,220].forEach((f,i)=>tone(f,.22,'sawtooth',i*.1,.07)),
+  boost:()=>[784,988,1175,1568].forEach((f,i)=>tone(f,.16,'sine',i*.07)),
+  mystery:()=>[392,523,392,659].forEach((f,i)=>tone(f,.12,'square',i*.1,.05)),
+  pop:()=>tone(660,.08,'square',0,.05),
+  oops:()=>tone(180,.35,'sawtooth',0,.07),
+  win:()=>[523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,.28,'triangle',i*.14))
+};
+
+/* ---------- helicopter drawing ---------- */
+function heliSVG(d,paint){
+  const p=k=>paint?` data-part="${k}"`:'';
+  const eye=inkFor(d.window);
+  return `<svg viewBox="0 0 124 74" aria-hidden="true">
+    <g${p('rotor')}><rect x="50" y="6" width="5" height="12" rx="2" fill="${d.rotor}"/>
+    <rect class="rotor" x="8" y="2" width="90" height="6" rx="3" fill="${d.rotor}" stroke="${edge(d.rotor)}"/>
+    <circle cx="114" cy="37" r="8" fill="none" stroke="${d.rotor}" stroke-width="3.5"/></g>
+    <rect${p('tail')} x="78" y="33" width="36" height="9" rx="4.5" fill="${d.tail}" stroke="${edge(d.tail)}"/>
+    <ellipse${p('body')} cx="52" cy="40" rx="35" ry="22" fill="${d.body}" stroke="${edge(d.body)}" stroke-width="2"/>
+    <g${p('window')}><ellipse cx="40" cy="36" rx="15" ry="12" fill="${d.window}" stroke="#fff" stroke-width="3"/>
+    <circle cx="36" cy="34" r="2.4" fill="${eye}"/><circle cx="45" cy="34" r="2.4" fill="${eye}"/>
+    <path d="M36 40 q4.5 4 9 0" stroke="${eye}" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+    <g${p('legs')} stroke="${d.legs}" stroke-linecap="round"><line x1="34" y1="60" x2="38" y2="68" stroke-width="4"/>
+    <line x1="68" y1="60" x2="64" y2="68" stroke-width="4"/><line x1="22" y1="69" x2="80" y2="69" stroke-width="5"/></g>
+  </svg>`;
+}
+
+/* ---------- setup ---------- */
+function segInit(id,key,cast){$(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{readNames();settings[key]=cast(b.dataset.v);syncSetup();});}
+segInit('countSeg','count',Number);segInit('heightSeg','height',Number);segInit('freqSeg','freq',String);
+function readNames(){[...$('nameInputs').querySelectorAll('input')].forEach((inp,i)=>settings.names[i]=inp.value);}
+function syncSetup(){
+  [['countSeg','count'],['heightSeg','height'],['freqSeg','freq']].forEach(([id,k])=>
+    $(id).querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v==String(settings[k])))));
+  const box=$('nameInputs');box.innerHTML='';
+  for(let i=0;i<settings.count;i++){
+    const l=document.createElement('label');
+    const num=document.createElement('span');num.className='num';num.textContent=(i+1)+'.';
+    const inp=document.createElement('input');inp.maxLength=18;inp.value=settings.names[i]||DEFAULT_NAMES[i];
+    inp.setAttribute('aria-label','Team '+(i+1)+' name');l.append(num,inp);box.append(l);
+  }
+}
+function openSetup(){closeCard();$('paintLayer').classList.remove('open');syncSetup();$('setup').classList.add('open');}
+$('setupBtn').onclick=openSetup;
+$('toPaint').onclick=()=>{
+  readNames();settings.names=settings.names.map((n,i)=>(n||'').trim()||DEFAULT_NAMES[i]);
+  saveSettings();$('setup').classList.remove('open');openPaint(0);
+};
+
+/* ---------- paint shop ---------- */
+let pTeam=0,pPart='body';
+function openPaint(i){pTeam=i;pPart='body';$('paintLayer').classList.add('open');drawPaint();}
+function drawPaint(){
+  const d=settings.designs[pTeam];
+  $('paintStep').textContent=`Helicopter ${pTeam+1} of ${settings.count}`;
+  $('paintTitle').textContent=`${settings.names[pTeam]}, paint your helicopter!`;
+  $('paintPreview').innerHTML=heliSVG(d,true);
+  $('paintPreview').querySelectorAll('[data-part]').forEach(el=>el.onclick=()=>{pPart=el.dataset.part;sfx.pop();drawPaint();});
+  const pb=$('partBtns');pb.innerHTML='';
+  PARTS.forEach(([k,label])=>{
+    const b=document.createElement('button');b.setAttribute('aria-pressed',String(k===pPart));
+    const dot=document.createElement('i');dot.style.background=d[k];
+    b.append(dot,document.createTextNode(label));b.onclick=()=>{pPart=k;sfx.pop();drawPaint();};pb.append(b);
+  });
+  const sw=$('swatches');sw.innerHTML='';
+  PALETTE.forEach(c=>{
+    const b=document.createElement('button');b.className='swatch';b.style.background=c;
+    b.setAttribute('aria-label','Color '+c);b.setAttribute('aria-pressed',String(d[pPart].toUpperCase()===c));
+    b.onclick=()=>{d[pPart]=c;tone(880,.08,'sine');saveSettings();drawPaint();};sw.append(b);
+  });
+  $('paintNext').textContent=pTeam<settings.count-1?'Next team →':'Start the game! 🚁';
+}
+$('paintBack').onclick=()=>{if(pTeam>0){pTeam--;pPart='body';drawPaint();}else{$('paintLayer').classList.remove('open');openSetup();}};
+$('paintRandom').onclick=()=>{const d=settings.designs[pTeam];PARTS.forEach(([k])=>d[k]=PALETTE[Math.random()*PALETTE.length|0]);sfx.boost();saveSettings();drawPaint();};
+$('paintNext').onclick=()=>{
+  saveSettings();
+  if(pTeam<settings.count-1){pTeam++;pPart='body';sfx.pop();drawPaint();}
+  else{$('paintLayer').classList.remove('open');startGame();}
+};
+
+/* ---------- game ---------- */
+function startGame(){
+  S={H:settings.height,turn:0,
+     teams:Array.from({length:settings.count},(_,i)=>({name:settings.names[i],d:{...settings.designs[i]},level:0,shield:false}))};
+  history=[];busy=false;buildSky();render();
+}
+function buildSky(){
+  const lanes=$('lanes'),ruler=$('ruler'),names=$('names');
+  lanes.innerHTML='';ruler.innerHTML='';names.innerHTML='';
+  const n=S.teams.length;
+  lanes.style.gridTemplateColumns=names.style.gridTemplateColumns=`repeat(${n},1fr)`;
+  const lines=document.createElement('div');lines.className='lines';
+  for(let i=0;i<=S.H;i++){
+    const pos=`calc(${i/S.H} * (100% - 74px) + 37px)`;
+    const ln=document.createElement('i');ln.style.bottom=pos;if(i===S.H)ln.className='top';lines.append(ln);
+    const num=document.createElement('span');num.style.bottom=pos;num.textContent=i===S.H?'🏁':i;ruler.append(num);
+  }
+  lanes.append(lines);
+  S.teams.forEach((t,i)=>{
+    const lane=document.createElement('div');lane.className='lane';lane.id='lane'+i;
+    lane.innerHTML=`<div class="heli" id="heli${i}"><div class="shake"><div class="bob"><div class="ring"></div>${heliSVG(t.d)}</div></div></div>`;
+    lanes.append(lane);
+    const chip=document.createElement('div');chip.className='chip';chip.id='chip'+i;
+    chip.style.setProperty('--c',t.d.body);chip.style.setProperty('--ci',inkFor(t.d.body));
+    const nm=document.createElement('span');nm.className='nm';nm.textContent=t.name;
+    chip.append(nm,document.createElement('b'));names.append(chip);
+  });
+}
+function render(){
+  S.teams.forEach((t,i)=>{
+    const h=$('heli'+i);h.style.setProperty('--p',t.level/S.H);h.classList.toggle('shielded',t.shield);
+    $('lane'+i).classList.toggle('active',i===S.turn);
+    const chip=$('chip'+i);chip.classList.toggle('active',i===S.turn);chip.querySelector('b').textContent=t.level;
+  });
+  const cur=S.teams[S.turn],tc=$('turnCard');
+  tc.style.setProperty('--c',cur.d.body);tc.style.setProperty('--ci',inkFor(cur.d.body));
+  $('turnHeli').innerHTML=heliSVG(cur.d);$('turnName').textContent=`${cur.name}'s turn!`;
+  $('flyBtn').disabled=$('retryBtn').disabled=busy;
+  $('undoBtn').disabled=busy||!history.length;
+}
+function snapshot(){history.push(JSON.stringify({teams:S.teams,turn:S.turn}));if(history.length>40)history.shift();}
+function undo(){if(busy||!history.length)return;const s=JSON.parse(history.pop());S.teams=s.teams;S.turn=s.turn;sfx.pop();render();}
+function nextTurn(){S.turn=(S.turn+1)%S.teams.length;busy=false;render();}
+function flyUp(){
+  if(busy||!S)return;snapshot();busy=true;
+  const ti=S.turn,t=S.teams[ti];t.level=Math.min(S.H,t.level+1);sfx.up();render();
+  setTimeout(()=>t.level>=S.H?win(ti):maybeEvent(ti),1000);
+}
+function retry(){if(busy||!S)return;snapshot();sfx.oops();nextTurn();}
+
+/* ---------- surprise clouds ---------- */
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(arr){let r=Math.random()*arr.reduce((s,a)=>s+a.w,0);for(const a of arr){if((r-=a.w)<0)return a;}return arr[0];}
+function maybeEvent(ti){
+  if(Math.random()>FREQ[settings.freq])return nextTurn();
+  const lv=S.teams.map(t=>t.level),t=S.teams[ti];
+  const behind=t.level===Math.min(...lv)&&Math.max(...lv)-t.level>=2;
+  const isObs=Math.random()<(behind?.25:.6);
+  sfx.mystery();
+  showCard({big:'☁️❓',title:'A surprise cloud!',text:`${t.name}, what's inside?`,
+    buttons:[{label:'Open it!',primary:true,fn:()=>isObs?obstacle(ti):booster(ti)}]});
+}
+function obstacle(ti){
+  const t=S.teams[ti],o=pick(OBST);
+  if(t.shield){sfx.boost();
+    return showCard({big:o.e+'🌈',title:o.t,text:'Your rainbow shield blocks it!',
+      buttons:[{label:'Hooray!',primary:true,fn:()=>{t.shield=false;closeCard();render();setTimeout(nextTurn,400);}}]});}
+  sfx.oops();
+  showCard({big:o.e,title:o.t,text:`Quick! Hide behind a cloud. Pick one!`,
+    buttons:shuffle([true,false]).map(safe=>({label:'☁️',cloud:true,fn:()=>{
+      if(safe){sfx.boost();showCard({big:'😅',title:'Phew! You are safe!',text:'Keep flying!',
+        buttons:[{label:'OK',primary:true,fn:()=>{closeCard();nextTurn();}}]});}
+      else{showCard({big:o.e,title:'It found you!',text:`Down ${o.d} level${o.d>1?'s':''}.`,
+        buttons:[{label:'OK',primary:true,fn:()=>hit(ti,o.d)}]});}
+    }}))});
+}
+function hit(ti,d){
+  closeCard();const t=S.teams[ti];t.level=Math.max(0,t.level-d);sfx.down();
+  const h=$('heli'+ti);h.classList.remove('hit');void h.offsetWidth;h.classList.add('hit');
+  render();setTimeout(nextTurn,1000);
+}
+function booster(ti){
+  const t=S.teams[ti];let b=pick(BOOST);if(b.shield&&t.shield)b=BOOST[0];
+  sfx.boost();
+  showCard({big:b.e,title:b.t,text:b.shield?'It blocks the next bad cloud.':`Up ${b.u} level${b.u>1?'s':''}!`,
+    buttons:[{label:'Yay!',primary:true,fn:()=>{
+      closeCard();if(b.shield)t.shield=true;else{t.level=Math.min(S.H,t.level+b.u);sfx.up();}
+      render();setTimeout(()=>t.level>=S.H?win(ti):nextTurn(),1000);}}]});
+}
+
+/* ---------- cards ---------- */
+function showCard({big,title,text,buttons}){
+  const card=$('eventCard');card.innerHTML='';
+  const bg=document.createElement('div');bg.className='big';bg.textContent=big;
+  const h=document.createElement('h2');h.textContent=title;
+  const p=document.createElement('p');p.className='txt';p.textContent=text;
+  const wrap=document.createElement('div');wrap.className='btns';
+  buttons.forEach(b=>{const el=document.createElement('button');
+    el.className='cbtn'+(b.primary?' primary':'')+(b.cloud?' cloudpick':'');
+    el.textContent=b.label;if(b.cloud)el.setAttribute('aria-label','Hide behind this cloud');
+    el.onclick=b.fn;wrap.append(el);});
+  card.append(bg,h,p,wrap);$('eventLayer').classList.add('open');
+  const first=wrap.querySelector('.primary');if(first)first.focus();
+}
+function closeCard(){$('eventLayer').classList.remove('open');}
+function win(ti){
+  const t=S.teams[ti];busy=true;sfx.win();confetti();
+  showCard({big:'🚁🐱',title:`${t.name} rescued the kitten!`,text:'Amazing sentences, everyone!',
+    buttons:[{label:'Play again',primary:true,fn:()=>{closeCard();startGame();}},{label:'Change setup',fn:openSetup}]});
+}
+function confetti(){
+  const cols=S.teams.map(t=>t.d.body).concat(['#FFC93C','#5CC8FF','#FF7AA5']);
+  for(let i=0;i<90;i++){const d=document.createElement('div');d.className='confetti';
+    d.style.left=Math.random()*100+'vw';d.style.background=cols[i%cols.length];
+    d.style.animationDuration=(2.2+Math.random()*2)+'s';d.style.animationDelay=(Math.random()*.8)+'s';
+    document.body.append(d);setTimeout(()=>d.remove(),5200);}
+}
+
+/* ---------- controls ---------- */
+$('flyBtn').onclick=flyUp;$('retryBtn').onclick=retry;$('undoBtn').onclick=undo;
+$('soundBtn').onclick=()=>{muted=!muted;$('soundBtn').textContent=muted?'🔇 Sound':'🔊 Sound';};
+document.addEventListener('keydown',e=>{
+  if(['setup','paintLayer','eventLayer'].some(id=>$(id).classList.contains('open')))return;
+  if(e.target.matches('input'))return;
+  const k=e.key.toLowerCase();
+  if(k===' '||k==='enter'||k==='1'){e.preventDefault();flyUp();}
+  else if(k==='0'){e.preventDefault();retry();}
+  else if(k==='u')undo();
+  else if(k==='m')$('soundBtn').click();
+});
+
+startGame();openSetup();
+</script>
+</body>
+</html>
